@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} - Admin</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>{{ app_name }} Admin Dashboard</h1>
+      <p class="subtle">Review and update support tickets</p>
+      <a class="link-btn" href="/">Back to Chat</a>
+    </header>
+
+    <section class="card">
+      <div class="toolbar">
+        <button id="refresh-btn" type="button">Refresh Tickets</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tickets-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Summary</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tickets-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} - Chat</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>{{ app_name }}</h1>
+      <p class="subtle">Student and faculty IT support assistant</p>
+      <a class="link-btn" href="/admin">Open Admin Dashboard</a>
+    </header>
+
+    <section class="card">
+      <h2>Submit Help Request</h2>
+      <form id="chat-form">
+        <label>
+          NetID / User ID
+          <input id="user_id" name="user_id" required placeholder="e.g., jdoe1">
+        </label>
+        <label>
+          Issue Description
+          <textarea id="issue_text" name="issue_text" rows="4" required placeholder="Describe your login, Duo, VPN/firewall, email, or LMS issue..."></textarea>
+        </label>
+        <label>
+          Optional Context
+          <input id="context" name="context" placeholder="e.g., Exam starts at 2pm">
+        </label>
+        <button type="submit">Get Help</button>
+      </form>
+    </section>
+
+    <section id="response-card" class="card hidden">
+      <h2>Bot Response</h2>
+      <p id="response-text"></p>
+      <ul id="steps-list"></ul>
+      <div id="meta" class="meta"></div>
+    </section>
+  </main>
+
+  <script src="/static/chat.js"></script>
+</body>
+</html>
