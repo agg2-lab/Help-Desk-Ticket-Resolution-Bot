@@ -1,89 +1,94 @@
-# UArizona Database Help Desk Ticket Bot
+# UArizona IT Help Desk Bot
 
-This project is a starter **university IT help desk bot** that:
+Production-style starter for a university help desk assistant that combines OpenAI responses, retrieval grounding, ticket lifecycle tracking, and optional ServiceNow escalation.
 
-- Uses the OpenAI API to generate troubleshooting responses.
-- Classifies common campus issues (login, Duo MFA, wifi, VPN/firewall, email, LMS).
-- Stores tickets in a local SQLite database.
-- Auto-creates tickets when issues are unresolved or high priority.
-- Supports optional ServiceNow incident creation for escalated tickets.
-- Supports optional MongoDB-backed retrieval to ground responses in historical KB/tickets.
+## Problems This Project Solves
 
-## Stack
+University IT teams repeatedly face high-volume, repetitive issues that require fast triage:
 
-- Python + FastAPI
+- **Login/identity access failures**: NetID lockouts, password resets, Duo MFA failures.
+- **Network access blockers**: campus wifi, VPN connectivity, firewall/client conflicts.
+- **Service disruption confusion**: email and LMS access issues with unclear root cause.
+- **Slow ticket triage**: analysts spending time rewriting summaries and first-response steps.
+- **Inconsistent support quality**: variable troubleshooting responses across staff and shifts.
+- **Escalation gaps**: low-confidence AI answers needing reliable handoff to human support.
+
+This bot addresses those problems by classifying incidents, generating actionable responses, grounding recommendations in prior KB/ticket history, and escalating uncertain cases.
+
+## Key Capabilities
+
+- OpenAI-powered troubleshooting responses and recommended next steps.
+- Category and priority detection for common university support scenarios.
+- Confidence-based guardrails with explicit human escalation behavior.
+- Local ticket management in SQLite with status workflow (`open`, `in_progress`, `resolved`, `closed`).
+- Audit logging for request/response and escalation events.
+- ServiceNow incident creation for escalated or unresolved tickets.
+- MongoDB-based retrieval to ground responses in historical resolutions.
+
+## Architecture
+
+- **API/UI**: FastAPI + Jinja templates
+- **LLM**: OpenAI Chat Completions API
+- **RAG**: MongoDB document store + OpenAI embeddings
+- **Ticket storage**: SQLite
+- **ITSM integration**: ServiceNow Table API
+
+## Tech Stack
+
+- Python
+- FastAPI
 - OpenAI Python SDK
-- SQLite (file-based database)
-- Optional MongoDB for KB/ticket retrieval
-- Optional ServiceNow API integration
+- SQLite
+- MongoDB (optional)
+- ServiceNow REST API (optional)
 
-## 1) Setup
-
-From PowerShell in this folder:
+## Quick Start (PowerShell)
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-```
-
-Copy env template:
-
-```powershell
 copy .env.example .env
 ```
 
-Edit `.env` and set your key:
+Set at minimum:
 
-- `OPENAI_API_KEY=...`
+- `OPENAI_API_KEY`
 
-Optional:
-
-- `OPENAI_MODEL=gpt-4o-mini`
-- `DATABASE_PATH=helpdesk_tickets.db`
-- `CONFIDENCE_THRESHOLD=0.65`
-- `MONGO_URI=<mongodb-connection-string>`
-- `SERVICENOW_INSTANCE_URL=https://<instance>.service-now.com`
-- `SERVICENOW_USERNAME=<user>`
-- `SERVICENOW_PASSWORD=<password>`
-
-## 2) Run API
+Start server:
 
 ```powershell
 uvicorn app.main:app --reload
 ```
 
-API docs:
+Open in browser:
 
-- http://127.0.0.1:8000/docs
-- Chat UI: http://127.0.0.1:8000/
-- Admin dashboard: http://127.0.0.1:8000/admin
+- API docs: `http://127.0.0.1:8000/docs`
+- Chat UI: `http://127.0.0.1:8000/`
+- Admin dashboard: `http://127.0.0.1:8000/admin`
 
-## 3) Test the Bot
+## Configuration
 
-### Health check
+Core:
 
-```powershell
-Invoke-RestMethod -Method GET -Uri "http://127.0.0.1:8000/health"
-```
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL` (default: `gpt-4o-mini`)
+- `DATABASE_PATH` (default: `helpdesk_tickets.db`)
+- `CONFIDENCE_THRESHOLD` (default: `0.65`)
+- `EMBEDDING_MODEL` (default: `text-embedding-3-small`)
 
-### Chat/help request
+MongoDB retrieval (optional):
 
-```powershell
-$body = @{
-  user_id = "jdoe1"
-  issue_text = "I cannot login to my NetID and Duo push is not working"
-  context = "Exam starts in 1 hour"
-} | ConvertTo-Json
+- `MONGO_URI`
+- `MONGO_DB_NAME` (default: `helpdesk`)
+- `MONGO_KB_COLLECTION` (default: `kb_documents`)
 
-Invoke-RestMethod -Method POST -Uri "http://127.0.0.1:8000/chat" -ContentType "application/json" -Body $body
-```
+ServiceNow integration (optional):
 
-### Get ticket by ID
-
-```powershell
-Invoke-RestMethod -Method GET -Uri "http://127.0.0.1:8000/tickets/1"
-```
+- `SERVICENOW_INSTANCE_URL` (example: `https://<instance>.service-now.com`)
+- `SERVICENOW_USERNAME`
+- `SERVICENOW_PASSWORD`
+- `SERVICENOW_INCIDENT_TABLE` (default: `incident`)
 
 ## API Endpoints
 
@@ -95,7 +100,17 @@ Invoke-RestMethod -Method GET -Uri "http://127.0.0.1:8000/tickets/1"
 - `GET /tickets/{ticket_id}`
 - `PATCH /tickets/{ticket_id}/status`
 
-### Example KB ingest payload
+### Example: Chat Request
+
+```json
+{
+  "user_id": "jdoe1",
+  "issue_text": "Cannot login to NetID and Duo push is failing",
+  "context": "Exam starts in 1 hour"
+}
+```
+
+### Example: KB Ingest Request
 
 ```json
 {
@@ -109,41 +124,9 @@ Invoke-RestMethod -Method GET -Uri "http://127.0.0.1:8000/tickets/1"
 }
 ```
 
-## Notes for University Deployment
+## Deployment Notes
 
-- Replace/extend troubleshooting playbooks in `app/kb.py` with official UArizona IT policy links.
-- Add authentication and role-based access before production use.
-- Move from SQLite to PostgreSQL for multi-user deployment.
-- Add audit logging and PII redaction for support transcripts.
-
-## GitHub Upload Checklist
-
-This repo is prepped for safe upload:
-
-- `.gitignore` excludes `.env`, local DB files, virtual envs, and caches.
-- `.gitattributes` and `.editorconfig` keep line endings/formatting consistent.
-- GitHub Actions workflow (`.github/workflows/ci.yml`) runs syntax checks on push/PR.
-
-### First push (PowerShell)
-
-```powershell
-git init
-git add .
-git commit -m "Initial commit: UArizona help desk bot"
-git branch -M main
-git remote add origin https://github.com/<your-user>/<your-repo>.git
-git push -u origin main
-```
-
-### Important safety check before push
-
-```powershell
-git status
-git diff -- .env
-```
-
-If `.env` appears in staged files, remove it before commit:
-
-```powershell
-git restore --staged .env
-```
+- Replace sample troubleshooting logic with official UArizona IT policy and runbooks.
+- Add authentication/authorization before production exposure.
+- Prefer PostgreSQL over SQLite for concurrent multi-user deployment.
+- Add PII redaction and retention policy controls for compliance.
