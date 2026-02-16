@@ -1,0 +1,7 @@
+* text=auto
+
+# Keep shell and Python scripts LF-consistent across platforms.
+*.py text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
