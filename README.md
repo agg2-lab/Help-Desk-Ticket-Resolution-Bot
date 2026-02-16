@@ -42,30 +42,6 @@ This bot addresses those problems by classifying incidents, generating actionabl
 - MongoDB (optional)
 - ServiceNow REST API (optional)
 
-## Quick Start (PowerShell)
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-copy .env.example .env
-```
-
-Set at minimum:
-
-- `OPENAI_API_KEY`
-
-Start server:
-
-```powershell
-uvicorn app.main:app --reload
-```
-
-Open in browser:
-
-- API docs: `http://127.0.0.1:8000/docs`
-- Chat UI: `http://127.0.0.1:8000/`
-- Admin dashboard: `http://127.0.0.1:8000/admin`
 
 ## Configuration
 
@@ -129,4 +105,5 @@ ServiceNow integration (optional):
 - Replace sample troubleshooting logic with official UArizona IT policy and runbooks.
 - Add authentication/authorization before production exposure.
 - Prefer PostgreSQL over SQLite for concurrent multi-user deployment.
+
 - Add PII redaction and retention policy controls for compliance.
